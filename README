@@ -4,12 +4,15 @@ Roll Number: 2018190
 How to run:
         * Go to the src directory
                 $ cd src
+        * Go to the directory of the question that you want to evaluate
+                $ cd Q<1,2,3>
         * Run main.py with python3
                 $ python3 main.py
 
 Dependencies:
         1. Python:
                 * scipy
+                * torch
         2. Others:
                 * git-lfs
 
