@@ -8,7 +8,10 @@ How to run:
                 $ python3 main.py
 
 Dependencies:
-        * scipy
+        1. Python:
+                * scipy
+        2. Others:
+                * git-lfs
 
 Tested on:
         * Python version: 3.10.9
