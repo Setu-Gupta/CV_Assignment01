@@ -172,7 +172,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
     
         # If checkpointing is enabled, save current state
-        if(len(sys.argc) >= 2 and sys.argv[1] == "save"):
+        if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
             torch.save({
                 'model'     : model.state_dict(),
                 'optimizer' : optimizer.state_dict(),
