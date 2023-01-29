@@ -17,6 +17,7 @@ class Net(nn.Module):
         x = F.relu(x)       # Apply the activation function
         x = torch.flatten(x)# Flatten the values to feed the fully connected layer
         x = self.fc(x)      # Apply the fully connected layer to get 10 outputs
+        x = F.relu(x)       # Apply the activation function
         x = self.softmax(x) # Get the probabilities of the various classes
 
         return x
