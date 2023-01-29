@@ -15,6 +15,10 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 # Use all cores
 torch.set_num_threads(multiprocessing.cpu_count())
 
+# Use GPU is available
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("The model will be running on", device, "device")
+
 config = dict(
         train_ratio = 0.7,
         val_ratio = 0.2,
@@ -81,6 +85,9 @@ def make(config):
     return model, loss_criterion, optimizer, train_loader, val_loader, test_loader
 
 def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
+    
+    # Move the model to GPU
+    model.to(device)
 
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, loss_criterion, log="all", log_freq=config['log_interval'])
@@ -93,11 +100,15 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
 
             # Get the inputs and labels
             input_image, _label = data
-            
+
             # Convert _label into a probabilty vector
             label = np.zeros(10)
             label[_label.item() - 1] = 1.0
             label = torch.from_numpy(label)
+            
+            # Move the input and output to the GPU
+            input_image = input_image.cuda()
+            label = label.cuda()
 
             # Zero out the gradient of the optimizer
             optimizer.zero_grad()
@@ -129,6 +140,10 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                         label[_label.item() - 1] = 1.0
                         label = torch.from_numpy(label)
                         
+                        # Move the input and output to the GPU
+                        input_image = input_image.cuda()
+                        label = label.cuda()
+                        
                         # Get prediction and compute loss
                         prediction = model(input_image)
                         val_loss += loss_criterion(prediction, label)
@@ -141,6 +156,9 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
 
 def test(model, test_loader):
+    
+    # Move the model to the GPU
+    model.to(device)
 
     # Create an array of ground truth labels and prediction probabilities
     ground_truth = np.zeros(len(test_loader))
@@ -157,15 +175,18 @@ def test(model, test_loader):
             # Get the input and the label
             input_image, label = data
             
+            # Move the input to the GPU
+            input_image = input_image.cuda()
+            
             # Store the ground truth
             ground_truth[idx] = label
 
             # Get prediction probabilities
             prediction_proba = model(input_image)
-            pred_probs.append(prediction_proba.numpy())
+            pred_probs.append(prediction_proba.cpu().numpy())
 
             # Get predicted label
-            pred_label = np.argmax(prediction_proba.numpy()) + 1
+            pred_label = np.argmax(prediction_proba.cpu().numpy()) + 1
             preds[idx] = pred_label
 
     # Convert to numpy arrays
@@ -189,17 +210,23 @@ def test(model, test_loader):
     wandb.save("model.onnx")
 
 def analyze_misclassifications(model, test_loader):
+    # Move the model to the GPU
+    model.to(device)
+
     visualization_count = [0 for i in range(10)]
     with torch.no_grad():
         for idx, data in enumerate(test_loader):
             # Get the input and the label
             input_image, label = data
+            
+            # Move the input to GPU
+            input_image = input_image.cuda()
 
             # Get prediction probabilities
             prediction_proba = model(input_image)
 
             # Get predicted label
-            pred_label = np.argmax(prediction_proba.numpy()) + 1
+            pred_label = np.argmax(prediction_proba.cpu().numpy()) + 1
             
             # Check if a misprediction ouccurred
             if(pred_label != label and visualization_count[label - 1] < 3):
