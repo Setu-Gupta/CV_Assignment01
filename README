@@ -23,3 +23,11 @@ Tested on:
 
 References:
         * https://stackoverflow.com/questions/874461/read-mat-files-in-python
+        * https://www.run.ai/guides/gpu-deep-learning/pytorch-gpu
+        * https://discuss.pytorch.org/t/how-to-split-dataset-into-test-and-validation-sets/33987
+        * http://wandb.me/pytorch-colab
+        * https://www.w3schools.com/python/ref_string_format.asp
+        * https://discuss.pytorch.org/t/getting-the-number-of-training-examples-from-the-loader/5868/2
+        * https://pytorch.org/docs/stable/data.html#torch.utils.data.random_split
+        * https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
+        * https://www.geeksforgeeks.org/formatted-string-literals-f-strings-python/
