@@ -46,9 +46,9 @@ def make(config):
     training_data, validation_data, testing_data = random_split(SvnhDataset(), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
 
     # Create data loaders for training, validation and testing sets
-    train_loader = DataLoader(training_data, shuffle=False)
-    val_loader = DataLoader(validation_data, shuffle=False)
-    test_loader = DataLoader(testing_data, shuffle=False)
+    train_loader = DataLoader(training_data, shuffle=False, pin_memory=True)
+    val_loader = DataLoader(validation_data, shuffle=False, pin_memory=True)
+    test_loader = DataLoader(testing_data, shuffle=False, pin_memory=True)
 
     # Visualize the data distribution
     figure, axes = plt.subplots(nrows=1, ncols=3, figsize=(20, 5))
@@ -107,8 +107,8 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             label = torch.from_numpy(label)
             
             # Move the input and output to the GPU
-            input_image = input_image.cuda()
-            label = label.cuda()
+            input_image = input_image.cuda(non_blocking=True)
+            label = label.cuda(non_blocking=True)
 
             # Zero out the gradient of the optimizer
             optimizer.zero_grad()
@@ -141,8 +141,8 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                         label = torch.from_numpy(label)
                         
                         # Move the input and output to the GPU
-                        input_image = input_image.cuda()
-                        label = label.cuda()
+                        input_image = input_image.cuda(non_blocking=True)
+                        label = label.cuda(non_blocking=True)
                         
                         # Get prediction and compute loss
                         prediction = model(input_image)
@@ -176,7 +176,7 @@ def test(model, test_loader):
             input_image, label = data
             
             # Move the input to the GPU
-            input_image = input_image.cuda()
+            input_image = input_image.cuda(non_blocking=True)
             
             # Store the ground truth
             ground_truth[idx] = label
@@ -220,7 +220,7 @@ def analyze_misclassifications(model, test_loader):
             input_image, label = data
             
             # Move the input to GPU
-            input_image = input_image.cuda()
+            input_image = input_image.cuda(non_blocking=True)
 
             # Get prediction probabilities
             prediction_proba = model(input_image)

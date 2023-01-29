@@ -51,3 +51,5 @@ References:
         * https://jdhao.github.io/2020/07/06/pytorch_set_num_threads/
         * https://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python
         * https://wandb.ai/wandb/plots/reports/Confusion-Matrix-Usage-and-Examples--VmlldzozMDg1NTM
+        * https://discuss.pytorch.org/t/gpu-not-fully-used/34102
+        * https://discuss.pytorch.org/t/why-set-cuda-non-blocking-false-for-target-variables/16943
