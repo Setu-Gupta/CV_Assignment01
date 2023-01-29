@@ -5,21 +5,39 @@ from dataset import SvnhDataset
 from network import Net 
 from torch.utils.data import DataLoader, random_split
 from matplotlib import pyplot as plt
+from torch.nn import CrossEntropyLoss
+from torch.optim import Adam 
 import numpy as np
+import torch
+import multiprocessing
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+
+# Use all cores
+torch.set_num_threads(multiprocessing.cpu_count())
 
 config = dict(
         train_ratio = 0.7,
         val_ratio = 0.2,
         test_ratio = 0.1,
         dataset = "SVNH",
-        learning_rate = 0.01,
+        adam_beta1 = 0.9, 
+        adam_beta2 = 0.999,
+        learning_rate = 0.001,
+        epochs = 1,
+        log_interval = 100
     )
 
 # Creates the model and the data loaders
 def make(config):
     # Create a CNN model
     model = Net()
+
+    # Create the loss criterion
+    loss_criterion = CrossEntropyLoss()
     
+    # Create the optimizer
+    optimizer = Adam(model.parameters(), lr=config['learning_rate'], betas=(config['adam_beta1'], config['adam_beta2']))
+
     # Get the data from the dataset and split it into 70:20:10 chunks
     training_data, validation_data, testing_data = random_split(SvnhDataset(), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
 
@@ -60,15 +78,115 @@ def make(config):
 
     plt.savefig("./pictures/data_dist.png")
 
-    return model, train_loader, val_loader, test_loader
+    return model, loss_criterion, optimizer, train_loader, val_loader, test_loader
 
-def train(model, train_loader, val_loader, config):
-    # TODO
-    pass
+def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
+
+    # Tell wandb to watch what the model gets up to: gradients, weights, and more!
+    wandb.watch(model, loss_criterion, log="all", log_freq=config['log_interval'])
+
+    for epoch_count in range(config['epochs']):
+        
+        # Track the cumulative loss
+        running_loss = 0.0
+        for idx, data in enumerate(train_loader):
+
+            # Get the inputs and labels
+            input_image, _label = data
+            
+            # Convert _label into a probabilty vector
+            label = np.zeros(10)
+            label[_label.item() - 1] = 1.0
+            label = torch.from_numpy(label)
+
+            # Zero out the gradient of the optimizer
+            optimizer.zero_grad()
+            
+            # Feed the input to the network
+            prediction = model(input_image)
+
+            # Compute the loss
+            loss = loss_criterion(prediction, label)
+
+            # Perform back propogation
+            loss.backward()
+
+            # Take a step towards the minima
+            optimizer.step()
+            
+            running_loss += loss.item()
+           
+            # Log validation and training loss with wandb
+            if idx % config['log_interval'] == 0 and idx != 0:
+                val_loss = 0.0
+                with torch.no_grad():
+                    for data in val_loader:
+                        # Get the input and the label
+                        input_image, _label = data
+                       
+                        # Get the true label in pytorch format
+                        label = np.zeros(10)
+                        label[_label.item() - 1] = 1.0
+                        label = torch.from_numpy(label)
+                        
+                        # Get prediction and compute loss
+                        prediction = model(input_image)
+                        val_loss += loss_criterion(prediction, label)
+                
+                val_loss /= len(val_loader)
+                train_loss = running_loss/config['log_interval']
+                print(f"[epoch:{epoch_count+1}, iteration:{idx}] Average Training Loss: {train_loss}, Average Validation Loss: {val_loss}")
+                running_loss = 0.0
+                
+                wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
 
 def test(model, test_loader):
-    # TODO
-    pass
+
+    # Create an array of ground truth labels and prediction probabilities
+    ground_truth = np.zeros(len(test_loader))
+    
+    # Create an array of predicted labels and their probabilities
+    preds = np.ones(len(test_loader))
+    pred_probs = []
+
+    # Create an array of class names
+    class_names = [str(x) for x in range(10)]
+
+    with torch.no_grad():
+        for idx, data in enumerate(test_loader):
+            # Get the input and the label
+            input_image, label = data
+            
+            # Store the ground truth
+            ground_truth[idx] = label
+
+            # Get prediction probabilities
+            prediction_proba = model(input_image)
+            pred_probs.append(prediction_proba.numpy())
+
+            # Get predicted label
+            pred_label = np.argmax(prediction_proba.numpy()) + 1
+            preds[idx] = pred_label
+
+    # Convert to numpy arrays
+    pred_probs = np.asarray(pred_probs)
+
+    # Compute accuracy, precision, recall and f1_score
+    accuracy = accuracy_score(ground_truth, preds)
+    precision = precision_score(ground_truth, preds)
+    recall = recall_score(ground_truth, preds)
+    accuracy = accuracy_score(ground_truth, preds)
+
+    # Log the confusion matrix
+    wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=pred_probs, y_true=ground_truth, class_names=class_names),
+               "F1_score": f1_score,
+               "Accuracy": accuracy,
+               "Precision": precision,
+               "Recall": recall})
+
+    # Save the model
+    torch.onnx.export(model, input_image, "model.onnx")
+    wandb.save("model.onnx")
 
 def model_pipeline(hyperparameters):
 
@@ -77,12 +195,11 @@ def model_pipeline(hyperparameters):
         # Access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
-        # Make the model, data, and optimization problem
-        model, train_loader, val_loader, test_loader = make(config)
-        print(model)
+        # Make the model, data loader, the loss criterion and the optimizer
+        model, loss_criterion, optimizer, train_loader, val_loader, test_loader = make(config)
 
         # And use them to train the model
-        train(model, train_loader, val_loader, config)
+        train(model, loss_criterion, optimizer, train_loader, val_loader, config)
 
         # And test its final performance
         test(model, test_loader)

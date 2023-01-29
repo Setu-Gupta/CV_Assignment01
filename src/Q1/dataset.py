@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 import scipy.io
+import numpy as np
 
 class SvnhDataset(Dataset):
     # Loads the data and populates the X and Y variables
@@ -15,5 +16,9 @@ class SvnhDataset(Dataset):
     # Returns a datapoint and label pair at a given index
     def __getitem__(self, idx):
         image = self.X[:,:,:,idx]
+        image = image.astype('float32') # Covert to float32 for pytorch
+        image = np.transpose(image, axes=[2, 0, 1])  # Transpose the image to conform with pytorch's input 
+        
         label = self.Y[idx].item()
+        
         return image, label

@@ -15,6 +15,8 @@ Dependencies:
                 * torch
                 * numpy
                 * matplotlib
+                * multiprocessing
+                * sklearn
         2. Others:
                 * git-lfs
 
@@ -38,3 +40,14 @@ References:
         * https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html
         * https://tinyurl.com/intro-to-ml-iiitd
         * https://stackoverflow.com/questions/9622163/save-plot-to-image-file-instead-of-displaying-it-using-matplotlib
+        * https://towardsdatascience.com/a-visual-explanation-of-gradient-descent-methods-momentum-adagrad-rmsprop-adam-f898b102325c
+        * https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning/
+        * https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+        * https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
+        * https://learn.microsoft.com/en-us/windows/ai/windows-ml/tutorials/pytorch-train-model
+        * https://medium.com/unpackai/cross-entropy-loss-in-ml-d9f22fc11fe0
+        * https://stackoverflow.com/questions/48001598/why-do-we-need-to-call-zero-grad-in-pytorch
+        * https://www.tutorialspoint.com/how-to-convert-a-numpy-ndarray-to-a-pytorch-tensor-and-vice-versa
+        * https://jdhao.github.io/2020/07/06/pytorch_set_num_threads/
+        * https://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python
+        * https://wandb.ai/wandb/plots/reports/Confusion-Matrix-Usage-and-Examples--VmlldzozMDg1NTM
