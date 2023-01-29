@@ -1,6 +1,8 @@
 import wandb
 wandb.login()
 
+import sys
+from os.path import isfile
 from dataset import SvnhDataset
 from network import Net 
 from torch.utils.data import DataLoader, random_split
@@ -12,13 +14,16 @@ import torch
 import multiprocessing
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
+# Set the checkpoint path
+checkpoint_path = "./saved_state/custom_CNN.pt"
+
 # Use all cores
 torch.set_num_threads(multiprocessing.cpu_count())
 
 # Use GPU is available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("The model will be running on", device, "device")
 
+# Thw configuration for wandb
 config = dict(
         train_ratio = 0.7,
         val_ratio = 0.2,
@@ -85,14 +90,25 @@ def make(config):
     return model, loss_criterion, optimizer, train_loader, val_loader, test_loader
 
 def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
-    
+   
+    # Epoch tp start training from
+    start_epoch = 0
+
+    # If a model is saved and checkpointing is enabled, load its state
+    if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+        if(isfile(checkpoint_path)):
+            checkpoint = torch.load(checkpoint_path)
+            model.load_state_dict(checkpoint['model'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            start_epoch = checkpoint['epoch'] + 1
+
     # Move the model to GPU
     model.to(device)
 
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, loss_criterion, log="all", log_freq=config['log_interval'])
 
-    for epoch_count in range(config['epochs']):
+    for epoch_count in range(start_epoch, config['epochs']):
         
         # Track the cumulative loss
         running_loss = 0.0
@@ -154,6 +170,14 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 running_loss = 0.0
                 
                 wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
+    
+        # If checkpointing is enabled, save current state
+        if(len(sys.argc) >= 2 and sys.argv[1] == "save"):
+            torch.save({
+                'model'     : model.state_dict(),
+                'optimizer' : optimizer.state_dict(),
+                'epoch'     : epoch_count
+                }, checkpoint_path)
 
 def test(model, test_loader):
     
@@ -252,6 +276,8 @@ def model_pipeline(hyperparameters):
 
     # Tell wandb to get started
     with wandb.init(project="CV_Assignment01", config=hyperparameters):
+        print("The model will be running on", device, "device")
+
         # Access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
