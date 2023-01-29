@@ -188,6 +188,39 @@ def test(model, test_loader):
     torch.onnx.export(model, input_image, "model.onnx")
     wandb.save("model.onnx")
 
+def analyze_misclassifications(model, test_loader):
+    visualization_count = [0 for i in range(10)]
+    with torch.no_grad():
+        for idx, data in enumerate(test_loader):
+            # Get the input and the label
+            input_image, label = data
+
+            # Get prediction probabilities
+            prediction_proba = model(input_image)
+
+            # Get predicted label
+            pred_label = np.argmax(prediction_proba.numpy()) + 1
+            
+            # Check if a misprediction ouccurred
+            if(pred_label != label and visualization_count[label - 1] < 3):
+                # Increment the visualization count
+                visualization_count[label - 1] += 1
+                
+                # Save the mispredicted image
+                input_image = np.transpose(input_image, axes=[1, 2, 0])
+                plt.imshow(input_image)
+                img_name = str(label) + '_' + str(visualization_count[label - 1]) + '_' + str(pred_label)
+                plt.savefig('./pictures/' + img_name)
+
+            # Exit if at least 3 images for all classes have been saved
+            should_exit = True
+            for val in visualization_count:
+                if(val < 3):
+                    should_exit = False
+
+            if(should_exit):
+                break
+
 def model_pipeline(hyperparameters):
 
     # Tell wandb to get started
@@ -203,6 +236,9 @@ def model_pipeline(hyperparameters):
 
         # And test its final performance
         test(model, test_loader)
+
+        # Perform miss-classification analysis
+        analyze_misclassifications(model, test_loader)
 
     return model
 
