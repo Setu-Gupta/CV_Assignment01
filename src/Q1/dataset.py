@@ -2,9 +2,6 @@ from torch.utils.data import Dataset
 import scipy.io
 
 class SvnhDataset(Dataset):
-    X = None    # Images
-    Y = None    # Labels
-
     # Loads the data and populates the X and Y variables
     def __init__(self):
         mat =  scipy.io.loadmat('./data/train_32x32.mat')

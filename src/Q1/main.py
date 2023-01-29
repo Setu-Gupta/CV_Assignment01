@@ -2,6 +2,7 @@ import wandb
 wandb.login()
 
 from dataset import SvnhDataset
+from network import Net 
 from torch.utils.data import DataLoader, random_split
 from matplotlib import pyplot as plt
 import numpy as np
@@ -16,9 +17,8 @@ config = dict(
 
 # Creates the model and the data loaders
 def make(config):
-    # TODO
     # Create a CNN model
-    model = None
+    model = Net()
     
     # Get the data from the dataset and split it into 70:20:10 chunks
     training_data, validation_data, testing_data = random_split(SvnhDataset(), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
@@ -79,6 +79,7 @@ def model_pipeline(hyperparameters):
 
         # Make the model, data, and optimization problem
         model, train_loader, val_loader, test_loader = make(config)
+        print(model)
 
         # And use them to train the model
         train(model, train_loader, val_loader, config)
