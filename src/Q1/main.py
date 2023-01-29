@@ -27,7 +27,7 @@ config = dict(
         adam_beta1 = 0.9, 
         adam_beta2 = 0.999,
         learning_rate = 0.001,
-        epochs = 1,
+        epochs = 10,
         log_interval = 100
     )
 
