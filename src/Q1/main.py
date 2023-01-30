@@ -131,6 +131,8 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             
             # Feed the input to the network
             prediction = model(input_image)
+            
+            print(prediction.cpu().detach().numpy())
 
             # Compute the loss
             loss = loss_criterion(prediction, label)
@@ -218,15 +220,12 @@ def test(model, test_loader):
             preds[idx] = int(pred_label)
 
     # Compute accuracy, precision, recall and f1_score
-    print(np.max(ground_truth), np.min(ground_truth))
-    print(np.max(preds), np.min(preds))
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
     precision = precision_score(ground_truth, preds, average='weighted', zero_division=1)
     recall = recall_score(ground_truth, preds, average='weighted', zero_division=1)
     f_score = f1_score(ground_truth, preds, average='weighted', zero_division=1)
 
     # Log the confusion matrix
-    # TODO: Fix type error
     wandb.log({"conf_mat": wandb.plot.confusion_matrix(preds=preds, y_true=ground_truth, class_names=class_names),
                "F1_score": f_score,
                "Accuracy": accuracy,
