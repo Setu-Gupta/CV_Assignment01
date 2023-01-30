@@ -273,7 +273,7 @@ def analyze_misclassifications(model, test_loader):
                     # Save the mispredicted image
                     plt.figure()
                     plt.imshow(input_image)
-                    img_name = 'true=' + str(label) + '_' + str(visualization_count[label]) + '_pred=' + str(pred_label)
+                    img_name = 'true_' + str(label) + '_' + str(visualization_count[label]) + '_pred_' + str(pred_label)
                     plt.savefig('./pictures/' + img_name)
 
                 # Exit if at least 3 images for all classes have been saved
