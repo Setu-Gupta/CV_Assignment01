@@ -132,6 +132,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             # Feed the input to the network
             prediction = model(input_image)
             
+            # TODO: Remove this debug statement
             print(prediction.cpu().detach().numpy())
 
             # Compute the loss
