@@ -221,8 +221,8 @@ def test(model, test_loader):
             ground_truth.extend(list(labels.numpy()))
 
             # Get predicted label
-            pred_labels = model.predict(input_images) 
-            preds.extend(list(pred_labels.numpy()))
+            pred_labels = model.predict_label(input_images)
+            preds.extend(list(pred_labels.cpu().numpy()))
 
     # Compute accuracy, precision, recall and f1_score
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
@@ -238,7 +238,7 @@ def test(model, test_loader):
                "Recall": recall})
 
     # Save the model
-    torch.onnx.export(model, input_image, "model.onnx")
+    torch.onnx.export(model, input_images, "model.onnx")
     wandb.save("model.onnx")
 
 def analyze_misclassifications(model, test_loader):
@@ -255,7 +255,7 @@ def analyze_misclassifications(model, test_loader):
             input_images = input_images.cuda(non_blocking=True)
 
             # Get predicted label
-            pred_labels = model.predict(input_images) 
+            pred_labels = model.predict_label(input_images) 
             
             # Check if a misprediction ouccurred and three images have not been saved yet
             for input_image, pred_label, label in zip(input_images.cpu(), pred_labels.cpu(), labels.cpu()):
