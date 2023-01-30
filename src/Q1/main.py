@@ -191,11 +191,10 @@ def test(model, test_loader):
     model.to(device)
 
     # Create an array of ground truth labels and prediction probabilities
-    ground_truth = np.zeros(len(test_loader))
+    ground_truth = np.zeros(len(test_loader), dtype=np.int32)
     
-    # Create an array of predicted labels and their probabilities
-    preds = np.ones(len(test_loader))
-    pred_probs = []
+    # Create an array of predicted labels
+    preds = np.ones(len(test_loader), dtype=np.int32)
 
     # Create an array of class names
     class_names = [str(x) for x in range(10)]
@@ -209,28 +208,26 @@ def test(model, test_loader):
             input_image = input_image.cuda(non_blocking=True)
             
             # Store the ground truth
-            ground_truth[idx] = int(label)
+            ground_truth[idx] = int(label.item() - 1)
 
             # Get prediction probabilities
             prediction_proba = model(input_image)
-            pred_probs.append(prediction_proba.cpu().numpy())
 
             # Get predicted label
-            pred_label = np.argmax(prediction_proba.cpu().numpy()) + 1
+            pred_label = np.argmax(prediction_proba.cpu().numpy())
             preds[idx] = int(pred_label)
 
-    # Convert to numpy arrays
-    pred_probs = np.asarray(pred_probs)
-
     # Compute accuracy, precision, recall and f1_score
+    print(np.max(ground_truth), np.min(ground_truth))
+    print(np.max(preds), np.min(preds))
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
-    precision = precision_score(ground_truth, preds, average='weighted')
-    recall = recall_score(ground_truth, preds, average='weighted')
-    f_score = f1_score(ground_truth, preds, average='weighted')
+    precision = precision_score(ground_truth, preds, average='weighted', zero_division=1)
+    recall = recall_score(ground_truth, preds, average='weighted', zero_division=1)
+    f_score = f1_score(ground_truth, preds, average='weighted', zero_division=1)
 
     # Log the confusion matrix
     # TODO: Fix type error
-    wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=pred_probs, y_true=ground_truth, class_names=class_names),
+    wandb.log({"conf_mat": wandb.plot.confusion_matrix(preds=preds, y_true=ground_truth, class_names=class_names),
                "F1_score": f_score,
                "Accuracy": accuracy,
                "Precision": precision,
@@ -249,6 +246,7 @@ def analyze_misclassifications(model, test_loader):
         for idx, data in enumerate(test_loader):
             # Get the input and the label
             input_image, label = data
+            label = label.item()
             
             # Move the input to GPU
             input_image = input_image.cuda(non_blocking=True)
@@ -259,11 +257,15 @@ def analyze_misclassifications(model, test_loader):
             # Get predicted label
             pred_label = np.argmax(prediction_proba.cpu().numpy()) + 1
             
-            # Check if a misprediction ouccurred
+            # Check if a misprediction ouccurred and three images have not been saved yet
             if(pred_label != label and visualization_count[label - 1] < 3):
                 # Increment the visualization count
                 visualization_count[label - 1] += 1
                 
+                # Move the input_image to cpu
+                input_image = input_image.cpu()[0]
+                input_image = input_image.numpy().astype(np.uint8)
+
                 # Save the mispredicted image
                 input_image = np.transpose(input_image, axes=[1, 2, 0])
                 plt.imshow(input_image)
