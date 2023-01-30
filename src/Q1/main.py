@@ -34,7 +34,7 @@ config = dict(
         learning_rate = 0.001,
         batch_size = 128,
         epochs = 10,
-        log_interval = 100
+        log_interval = 10
     )
 
 # Creates the model and the data loaders
