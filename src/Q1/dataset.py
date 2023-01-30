@@ -19,6 +19,6 @@ class SvnhDataset(Dataset):
         image = image.astype('float32') # Covert to float32 for pytorch
         image = np.transpose(image, axes=[2, 0, 1])  # Transpose the image to conform with pytorch's input 
         
-        label = self.Y[idx].item()
+        label = self.Y[idx].item() - 1  # Start the labels from 0 instead of 1
         
         return image, label

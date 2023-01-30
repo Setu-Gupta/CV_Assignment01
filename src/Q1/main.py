@@ -32,6 +32,7 @@ config = dict(
         adam_beta1 = 0.9, 
         adam_beta2 = 0.999,
         learning_rate = 0.001,
+        batch_size = 128,
         epochs = 10,
         log_interval = 100
     )
@@ -51,14 +52,31 @@ def make(config):
     training_data, validation_data, testing_data = random_split(SvnhDataset(), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
 
     # Create data loaders for training, validation and testing sets
-    train_loader = DataLoader(training_data, shuffle=False, pin_memory=True)
-    val_loader = DataLoader(validation_data, shuffle=False, pin_memory=True)
-    test_loader = DataLoader(testing_data, shuffle=False, pin_memory=True)
+    train_loader = DataLoader(training_data, shuffle=False, batch_size=config['batch_size'], pin_memory=True)
+    val_loader = DataLoader(validation_data, shuffle=False, batch_size=config['batch_size'], pin_memory=True)
+    test_loader = DataLoader(testing_data, shuffle=False, batch_size=config['batch_size'], pin_memory=True)
 
     # Visualize the data distribution
+    
+    # Get all the targets
+    train_targets = []
+    val_targets = []
+    test_targets = []
+    for _, labels in train_loader:
+        labels = labels.numpy()
+        labels = labels.flatten()
+        train_targets.extend(list(labels))
+    for _, labels in val_loader:
+        labels = labels.numpy()
+        labels = labels.flatten()
+        val_targets.extend(list(labels))
+    for _, labels in test_loader:
+        labels = labels.numpy()
+        labels = labels.flatten()
+        test_targets.extend(list(labels))
+
     figure, axes = plt.subplots(nrows=1, ncols=3, figsize=(20, 5))
     
-    train_targets = labels = [l.item() for _, l in train_loader]
     train_ticks = np.unique(train_targets)
     train_ticks.sort()
     axes[0].hist(train_targets)
@@ -67,7 +85,6 @@ def make(config):
     axes[0].set_xlabel("Target Labels")
     axes[0].set_ylabel("Count")
     
-    val_targets = labels = [l.item() for _, l in val_loader]
     val_ticks = np.unique(val_targets)
     val_ticks.sort()
     axes[1].hist(val_targets)
@@ -76,7 +93,6 @@ def make(config):
     axes[1].set_xlabel("Target Labels")
     axes[1].set_ylabel("Count")
     
-    test_targets = labels = [l.item() for _, l in test_loader]
     test_ticks = np.unique(test_targets)
     test_ticks.sort()
     axes[2].hist(test_targets)
@@ -91,7 +107,7 @@ def make(config):
 
 def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
    
-    # Epoch tp start training from
+    # Epoch to start training from
     start_epoch = 0
 
     # If a model is saved and checkpointing is enabled, load its state
@@ -112,65 +128,56 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
         
         # Track the cumulative loss
         running_loss = 0.0
+        running_count = 0
         for idx, data in enumerate(train_loader):
 
             # Get the inputs and labels
-            input_image, _label = data
+            input_images, labels = data
 
-            # Convert _label into a probabilty vector
-            label = np.zeros(10)
-            label[_label.item() - 1] = 1.0
-            label = torch.from_numpy(label)
-            
             # Move the input and output to the GPU
-            input_image = input_image.cuda(non_blocking=True)
-            label = label.cuda(non_blocking=True)
+            input_images = input_images.cuda(non_blocking=True)
+            labels = labels.cuda(non_blocking=True)
 
             # Zero out the gradient of the optimizer
             optimizer.zero_grad()
             
             # Feed the input to the network
-            prediction = model(input_image)
+            predictions = model(input_images)
             
-            # TODO: Remove this debug statement
-            print(prediction.cpu().detach().numpy())
-
             # Compute the loss
-            loss = loss_criterion(prediction, label)
+            loss = loss_criterion(predictions, labels)
 
             # Perform back propogation
             loss.backward()
 
             # Take a step towards the minima
             optimizer.step()
-            
-            running_loss += loss.item()
            
+            # Update training loss
+            running_loss += loss.item()
+            running_count += config['batch_size']
+
             # Log validation and training loss with wandb
             if idx % config['log_interval'] == 0 and idx != 0:
                 val_loss = 0.0
                 with torch.no_grad():
                     for data in val_loader:
                         # Get the input and the label
-                        input_image, _label = data
+                        input_images, labels = data
                        
-                        # Get the true label in pytorch format
-                        label = np.zeros(10)
-                        label[_label.item() - 1] = 1.0
-                        label = torch.from_numpy(label)
-                        
                         # Move the input and output to the GPU
-                        input_image = input_image.cuda(non_blocking=True)
-                        label = label.cuda(non_blocking=True)
+                        input_images = input_images.cuda(non_blocking=True)
+                        labels = labels.cuda(non_blocking=True)
                         
                         # Get prediction and compute loss
-                        prediction = model(input_image)
-                        val_loss += loss_criterion(prediction, label)
+                        predictions = model(input_images)
+                        val_loss += loss_criterion(predictions, labels).item()
                 
-                val_loss /= len(val_loader)
-                train_loss = running_loss/config['log_interval']
+                val_loss /= len(val_loader.dataset)
+                train_loss = running_loss/running_count 
                 print(f"[epoch:{epoch_count+1}, iteration:{idx}] Average Training Loss: {train_loss}, Average Validation Loss: {val_loss}")
                 running_loss = 0.0
+                running_count = 0
                 
                 wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
     
@@ -193,11 +200,11 @@ def test(model, test_loader):
     # Move the model to the GPU
     model.to(device)
 
-    # Create an array of ground truth labels and prediction probabilities
-    ground_truth = np.zeros(len(test_loader), dtype=np.int32)
+    # Create an array of ground truth labels
+    ground_truth = []
     
     # Create an array of predicted labels
-    preds = np.ones(len(test_loader), dtype=np.int32)
+    preds = []
 
     # Create an array of class names
     class_names = [str(x) for x in range(10)]
@@ -205,20 +212,17 @@ def test(model, test_loader):
     with torch.no_grad():
         for idx, data in enumerate(test_loader):
             # Get the input and the label
-            input_image, label = data
+            input_images, labels = data
             
             # Move the input to the GPU
-            input_image = input_image.cuda(non_blocking=True)
+            input_images = input_images.cuda(non_blocking=True)
             
             # Store the ground truth
-            ground_truth[idx] = int(label.item() - 1)
-
-            # Get prediction probabilities
-            prediction_proba = model(input_image)
+            ground_truth.extend(list(labels.numpy()))
 
             # Get predicted label
-            pred_label = np.argmax(prediction_proba.cpu().numpy())
-            preds[idx] = int(pred_label)
+            pred_labels = model.predict(input_images) 
+            preds.extend(list(pred_labels.numpy()))
 
     # Compute accuracy, precision, recall and f1_score
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
@@ -245,41 +249,41 @@ def analyze_misclassifications(model, test_loader):
     with torch.no_grad():
         for idx, data in enumerate(test_loader):
             # Get the input and the label
-            input_image, label = data
-            label = label.item()
+            input_images, labels = data
             
             # Move the input to GPU
-            input_image = input_image.cuda(non_blocking=True)
-
-            # Get prediction probabilities
-            prediction_proba = model(input_image)
+            input_images = input_images.cuda(non_blocking=True)
 
             # Get predicted label
-            pred_label = np.argmax(prediction_proba.cpu().numpy()) + 1
+            pred_labels = model.predict(input_images) 
             
             # Check if a misprediction ouccurred and three images have not been saved yet
-            if(pred_label != label and visualization_count[label - 1] < 3):
-                # Increment the visualization count
-                visualization_count[label - 1] += 1
-                
-                # Move the input_image to cpu
-                input_image = input_image.cpu()[0]
-                input_image = input_image.numpy().astype(np.uint8)
+            for input_image, pred_label, label in zip(input_images.cpu(), pred_labels.cpu(), labels.cpu()):
+                pred_label = pred_label.item()
+                label = label.item()
 
-                # Save the mispredicted image
-                input_image = np.transpose(input_image, axes=[1, 2, 0])
-                plt.imshow(input_image)
-                img_name = str(label) + '_' + str(visualization_count[label - 1]) + '_' + str(pred_label)
-                plt.savefig('./pictures/' + img_name)
+                if(pred_label != label and visualization_count[label] < 3):
+                    # Increment the visualization count
+                    visualization_count[label] += 1
+                    
+                    # Get the input image in numpy format
+                    input_image = input_image.numpy().astype(np.uint8)
+                    input_image = np.transpose(input_image, axes=[1, 2, 0])
 
-            # Exit if at least 3 images for all classes have been saved
-            should_exit = True
-            for val in visualization_count:
-                if(val < 3):
-                    should_exit = False
+                    # Save the mispredicted image
+                    plt.figure()
+                    plt.imshow(input_image)
+                    img_name = 'true=' + str(label) + '_' + str(visualization_count[label]) + '_pred=' + str(pred_label)
+                    plt.savefig('./pictures/' + img_name)
 
-            if(should_exit):
-                break
+                # Exit if at least 3 images for all classes have been saved
+                should_exit = True
+                for val in visualization_count:
+                    if(val < 3):
+                        should_exit = False
+
+                if(should_exit):
+                    return
 
 def model_pipeline(hyperparameters):
 
