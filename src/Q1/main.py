@@ -180,7 +180,13 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 }, checkpoint_path)
 
 def test(model, test_loader):
-    
+   
+    # Load the saved model
+    if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+        if(isfile(checkpoint_path)):
+            checkpoint = torch.load(checkpoint_path)
+            model.load_state_dict(checkpoint['model'])
+
     # Move the model to the GPU
     model.to(device)
 
@@ -203,7 +209,7 @@ def test(model, test_loader):
             input_image = input_image.cuda(non_blocking=True)
             
             # Store the ground truth
-            ground_truth[idx] = label
+            ground_truth[idx] = int(label)
 
             # Get prediction probabilities
             prediction_proba = model(input_image)
@@ -211,20 +217,21 @@ def test(model, test_loader):
 
             # Get predicted label
             pred_label = np.argmax(prediction_proba.cpu().numpy()) + 1
-            preds[idx] = pred_label
+            preds[idx] = int(pred_label)
 
     # Convert to numpy arrays
     pred_probs = np.asarray(pred_probs)
 
     # Compute accuracy, precision, recall and f1_score
-    accuracy = accuracy_score(ground_truth, preds)
-    precision = precision_score(ground_truth, preds)
-    recall = recall_score(ground_truth, preds)
-    accuracy = accuracy_score(ground_truth, preds)
+    accuracy = accuracy_score(ground_truth, preds, normalize=True)
+    precision = precision_score(ground_truth, preds, average='weighted')
+    recall = recall_score(ground_truth, preds, average='weighted')
+    f_score = f1_score(ground_truth, preds, average='weighted')
 
     # Log the confusion matrix
+    # TODO: Fix type error
     wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=pred_probs, y_true=ground_truth, class_names=class_names),
-               "F1_score": f1_score,
+               "F1_score": f_score,
                "Accuracy": accuracy,
                "Precision": precision,
                "Recall": recall})
@@ -285,7 +292,8 @@ def model_pipeline(hyperparameters):
         model, loss_criterion, optimizer, train_loader, val_loader, test_loader = make(config)
 
         # And use them to train the model
-        train(model, loss_criterion, optimizer, train_loader, val_loader, config)
+        if "test" not in sys.argv:
+            train(model, loss_criterion, optimizer, train_loader, val_loader, config)
 
         # And test its final performance
         test(model, test_loader)

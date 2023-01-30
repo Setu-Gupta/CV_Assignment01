@@ -6,8 +6,8 @@ How to run:
                 $ cd src
         * Go to the directory of the question that you want to evaluate
                 $ cd Q<1,2,3>
-        * Run main.py with python3. Specify "save" as the argument to enable checkpointing
-                $ python3 main.py [save]
+        * Run main.py with python3. Optionally specify "save" as the argument to enable checkpointing. Optionally specify test to only evaluate the model.
+                $ python3 main.py [save] [test]
 
 Dependencies:
         1. Python:
