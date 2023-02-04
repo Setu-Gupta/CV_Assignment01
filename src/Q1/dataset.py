@@ -4,10 +4,11 @@ import numpy as np
 
 class SvnhDataset(Dataset):
     # Loads the data and populates the X and Y variables
-    def __init__(self):
+    def __init__(self, transform=None):
         mat =  scipy.io.loadmat('./data/train_32x32.mat')
         self.X = mat['X']
         self.Y = mat['y']
+        self.transform = transform
 
     # Returns the number of samples in the dataset
     def __len__(self):
@@ -16,8 +17,9 @@ class SvnhDataset(Dataset):
     # Returns a datapoint and label pair at a given index
     def __getitem__(self, idx):
         image = self.X[:,:,:,idx]
-        image = image.astype('float32') # Covert to float32 for pytorch
-        image = np.transpose(image, axes=[2, 0, 1])  # Transpose the image to conform with pytorch's input 
+        
+        # Apply transform
+        image = self.transform(image)
         
         label = self.Y[idx].item()  
         # Label 10 is for zero

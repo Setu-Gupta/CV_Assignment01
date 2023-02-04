@@ -8,11 +8,16 @@ from network import Net
 from torch.utils.data import DataLoader, random_split
 from matplotlib import pyplot as plt
 from torch.nn import CrossEntropyLoss
-from torch.optim import Adam 
+from torch.optim import Adam
+from torchvision import transforms
 import numpy as np
 import torch
 import multiprocessing
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+
+# Set a manual seed for reproducibility
+torch.manual_seed(6225)
+np.random.seed(6225)
 
 # Set the checkpoint path
 checkpoint_path = "./saved_state/custom_CNN.pt"
@@ -23,7 +28,7 @@ torch.set_num_threads(multiprocessing.cpu_count())
 # Use GPU is available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Thw configuration for wandb
+# The configuration for wandb
 config = dict(
         train_ratio = 0.7,
         val_ratio = 0.2,
@@ -32,8 +37,8 @@ config = dict(
         adam_beta1 = 0.9, 
         adam_beta2 = 0.999,
         learning_rate = 0.001,
-        batch_size = 128,
-        epochs = 10,
+        batch_size = 32,
+        epochs = 3,
         log_interval = 10
     )
 
@@ -48,16 +53,43 @@ def make(config):
     # Create the optimizer
     optimizer = Adam(model.parameters(), lr=config['learning_rate'], betas=(config['adam_beta1'], config['adam_beta2']))
 
-    # Get the data from the dataset and split it into 70:20:10 chunks
-    training_data, validation_data, testing_data = random_split(SvnhDataset(), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
+    # Get the mean and standard deviation of the dataset
+    all_data = DataLoader(SvnhDataset(transform=transforms.ToTensor()), shuffle=True, batch_size=config['batch_size'], pin_memory=True)
+    channel_sum = torch.zeros(3).to(device)
+    channel_sum_squared = torch.zeros(3).to(device)
+    num_batches = torch.Tensor([0])
+    num_batches = num_batches.to(device)
+    for images, label in all_data:
+        channel_sum += torch.mean(images)
+        channel_sum_squared += torch.mean(torch.square(images))
+        num_batches += 1
+
+    mean = channel_sum/num_batches
+    std_dev = torch.sqrt(((channel_sum_squared/num_batches) - torch.square(mean)))
+    mean = mean
+    std_dev = std_dev
+
+    # Create the transform to normalize the images
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std_dev)
+        ])
+    
+    # Create the transform to invese normalize the images
+    inv_transform = transforms.Compose([
+        transforms.Normalize(mean=[0., 0., 0.], std=1/std_dev),
+        transforms.Normalize(mean=-mean, std=[1., 1., 1.])
+        ])
+
+    # Load the data again but this time with transform. Split it into appropriate chunk size
+    training_data, validation_data, testing_data = random_split(SvnhDataset(transform=transform), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
 
     # Create data loaders for training, validation and testing sets
-    train_loader = DataLoader(training_data, shuffle=False, batch_size=config['batch_size'], pin_memory=True)
-    val_loader = DataLoader(validation_data, shuffle=False, batch_size=config['batch_size'], pin_memory=True)
-    test_loader = DataLoader(testing_data, shuffle=False, batch_size=config['batch_size'], pin_memory=True)
+    train_loader = DataLoader(training_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
+    val_loader = DataLoader(validation_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
+    test_loader = DataLoader(testing_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
 
     # Visualize the data distribution
-    
     # Get all the targets
     train_targets = []
     val_targets = []
@@ -103,7 +135,7 @@ def make(config):
 
     plt.savefig("./pictures/data_dist.png")
 
-    return model, loss_criterion, optimizer, train_loader, val_loader, test_loader
+    return model, loss_criterion, optimizer, train_loader, val_loader, test_loader, inv_transform
 
 def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
    
@@ -241,7 +273,7 @@ def test(model, test_loader):
     torch.onnx.export(model, input_images, "model.onnx")
     wandb.save("model.onnx")
 
-def analyze_misclassifications(model, test_loader):
+def analyze_misclassifications(model, test_loader, inv_transform):
     # Move the model to the GPU
     model.to(device)
 
@@ -265,10 +297,13 @@ def analyze_misclassifications(model, test_loader):
                 if(pred_label != label and visualization_count[label] < 3):
                     # Increment the visualization count
                     visualization_count[label] += 1
-                    
-                    # Get the input image in numpy format
-                    input_image = input_image.numpy().astype(np.uint8)
+
+                    # Apply the inverse of the transform
+                    input_image = inv_transform(input_image)
+
+                    # Convert the input image pixels to char type
                     input_image = np.transpose(input_image, axes=[1, 2, 0])
+                    input_image = input_image.numpy().astype(np.uint8)
 
                     # Save the mispredicted image
                     plt.figure()
@@ -295,7 +330,7 @@ def model_pipeline(hyperparameters):
         config = wandb.config
 
         # Make the model, data loader, the loss criterion and the optimizer
-        model, loss_criterion, optimizer, train_loader, val_loader, test_loader = make(config)
+        model, loss_criterion, optimizer, train_loader, val_loader, test_loader, inv_transform = make(config)
 
         # And use them to train the model
         if "test" not in sys.argv:
@@ -305,7 +340,7 @@ def model_pipeline(hyperparameters):
         test(model, test_loader)
 
         # Perform miss-classification analysis
-        analyze_misclassifications(model, test_loader)
+        analyze_misclassifications(model, test_loader, inv_transform)
 
     return model
 

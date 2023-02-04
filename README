@@ -58,3 +58,7 @@ References:
         * https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html
         * https://community.wandb.ai/t/getting-keyerror-tensor-0-while-plotting-wandbs-confusion-matrix/2974
         * https://discuss.pytorch.org/t/softmax-cross-entropy-loss/125383
+        * https://towardsdatascience.com/how-to-calculate-the-mean-and-standard-deviation-normalizing-datasets-in-pytorch-704bd7d05f4c
+        * https://pytorch.org/vision/main/generated/torchvision.transforms.Compose.html
+        * https://pytorch.org/docs/stable/notes/randomness.html
+        * https://discuss.pytorch.org/t/simple-way-to-inverse-transform-normalization/4821/3
