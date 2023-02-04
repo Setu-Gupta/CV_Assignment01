@@ -37,6 +37,7 @@ config = dict(
         adam_beta1 = 0.9, 
         adam_beta2 = 0.999,
         learning_rate = 0.001,
+        weight_decay = 0.005,
         batch_size = 32,
         epochs = 3,
         log_interval = 10
@@ -51,7 +52,7 @@ def make(config):
     loss_criterion = CrossEntropyLoss()
     
     # Create the optimizer
-    optimizer = Adam(model.parameters(), lr=config['learning_rate'], betas=(config['adam_beta1'], config['adam_beta2']))
+    optimizer = Adam(model.parameters(), lr=config['learning_rate'], betas=(config['adam_beta1'], config['adam_beta2']), weight_decay=config['weight_decay'])
 
     # Get the mean and standard deviation of the dataset
     all_data = DataLoader(SvnhDataset(transform=transforms.ToTensor()), shuffle=True, batch_size=config['batch_size'], pin_memory=True)
