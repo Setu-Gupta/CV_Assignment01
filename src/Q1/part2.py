@@ -220,6 +220,12 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 'optimizer' : optimizer.state_dict(),
                 'epoch'     : epoch_count
                 }, checkpoint_path)
+    
+    # Save the model on wandb
+    if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+        model_artifact = wandb.Artifact('model', type='model')
+        model_artifact.add_file(checkpoint_path)
+        wandb.log_artifact(model_artifact)
 
 def test(model, test_loader):
    
@@ -345,4 +351,5 @@ def model_pipeline(hyperparameters):
     return model
 
 if __name__ == "__main__":
-    model_pipeline(config);
+    model_pipeline(config)
+    wandb.finish()
