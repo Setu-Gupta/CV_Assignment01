@@ -66,3 +66,8 @@ References:
         * https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html
         * https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
         * https://pytorch.org/vision/stable/feature_extraction.html
+        * https://stackoverflow.com/questions/60840500/pytorch-concatenating-datasets-before-using-dataloader
+        * https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
+        * https://pytorch.org/vision/stable/transforms.html#transforms-on-pil-image-and-torch-tensor
+        * https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_tsne.html
+        * https://matplotlib.org/stable/gallery/mplot3d/scatter3d.html
