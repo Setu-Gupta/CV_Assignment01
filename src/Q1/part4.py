@@ -38,8 +38,8 @@ config = dict(
         adam_beta2 = 0.999,
         learning_rate = 0.001,
         weight_decay = 0.005,
-        batch_size = 64,
-        epochs = 5,
+        batch_size = 128,
+        epochs = 10,
         log_interval = 10
     )
 
