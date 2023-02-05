@@ -20,7 +20,10 @@ torch.manual_seed(6225)
 np.random.seed(6225)
 
 # Set the checkpoint path
-checkpoint_path = "./saved_state/custom_CNN.pt"
+checkpoint_path = "./saved_state/custom_CNN_Q1_2.pt"
+
+# Set the pictures directory
+pictures_path = "./pictures_part2/"
 
 # Use all cores
 torch.set_num_threads(multiprocessing.cpu_count())
@@ -135,7 +138,7 @@ def make(config):
     axes[2].set_xlabel("Target Labels")
     axes[2].set_ylabel("Count")
 
-    plt.savefig("./pictures/data_dist.png")
+    plt.savefig(pictures_path + "data_dist.png")
 
     return model, loss_criterion, optimizer, train_loader, val_loader, test_loader, inv_transform
 
@@ -278,8 +281,8 @@ def test(model, test_loader):
                "Recall": recall})
 
     # Save the model
-    torch.onnx.export(model, input_images, "model.onnx")
-    wandb.save("model.onnx")
+    torch.onnx.export(model, input_images, "model_Q1_2.onnx")
+    wandb.save("model_Q1_2.onnx")
 
 def analyze_misclassifications(model, test_loader, inv_transform):
     # Move the model to the GPU
@@ -307,15 +310,13 @@ def analyze_misclassifications(model, test_loader, inv_transform):
                     visualization_count[label] += 1
 
                     # Apply the inverse of the transform
-                    print("Pre-transform: ", input_image)
                     input_image = inv_transform(input_image)
-                    print("Post-transform: ", input_image)
 
                     # Save the mispredicted image
                     plt.figure()
                     plt.imshow(input_image)
                     img_name = 'true_' + str(label) + '_' + str(visualization_count[label]) + '_pred_' + str(pred_label)
-                    plt.savefig('./pictures/' + img_name)
+                    plt.savefig(pictures_path + img_name)
 
                 # Exit if at least 3 images for all classes have been saved
                 should_exit = True

@@ -62,3 +62,6 @@ References:
         * https://pytorch.org/vision/main/generated/torchvision.transforms.Compose.html
         * https://pytorch.org/docs/stable/notes/randomness.html
         * https://discuss.pytorch.org/t/simple-way-to-inverse-transform-normalization/4821/3
+        * https://pytorch.org/vision/0.8/transforms.html
+        * https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html
+        * https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
