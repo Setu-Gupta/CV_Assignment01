@@ -77,14 +77,14 @@ def make(config):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std_dev)
-        ])
+    ])
     
-    # Create the transform to invese normalize the images
+    # Create the transform to inverse normalize the images
     inv_transform = transforms.Compose([
         transforms.Normalize(mean=[0., 0., 0.], std=1/std_dev),
         transforms.Normalize(mean=-mean, std=[1., 1., 1.]),
         transforms.ToPILImage()
-        ])
+    ])
 
     # Load the data again but this time with transform. Split it into appropriate chunk size
     training_data, validation_data, testing_data = random_split(SvnhDataset(transform=transform), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
@@ -147,7 +147,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
     # Epoch to start training from
     start_epoch = 0
 
-    # If a model is saved and checkpointing is enabled, load its state
+    # If a model is saved and check-pointing is enabled, load its state
     if("save" in sys.argv):
         if(isfile(checkpoint_path)):
             checkpoint = torch.load(checkpoint_path)
@@ -166,10 +166,15 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
         # Track the cumulative loss
         running_loss = 0.0
         running_count = 0
+        train_ground_truth = []
+        train_preds = []
         for idx, data in enumerate(train_loader):
 
             # Get the inputs and labels
             input_images, labels = data
+                        
+            # Append true labels to ground truth
+            train_ground_truth.extend(list(labels.numpy()))
 
             # Move the input and output to the GPU
             input_images = input_images.cuda(non_blocking=True)
@@ -184,7 +189,12 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             # Compute the loss
             loss = loss_criterion(predictions, labels)
 
-            # Perform back propogation
+            # Append predicted labels to preds
+            with torch.no_grad():
+                pred_labels = model.predict_label(input_images)
+                train_preds.extend(list(pred_labels.cpu().numpy()))
+
+            # Perform back propagation
             loss.backward()
 
             # Take a step towards the minima
@@ -197,10 +207,15 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             # Log validation and training loss with wandb
             if idx % config['log_interval'] == 0 and idx != 0:
                 val_loss = 0.0
+                val_preds = []
+                val_ground_truth = []
                 with torch.no_grad():
                     for data in val_loader:
                         # Get the input and the label
                         input_images, labels = data
+                        
+                        # Append true labels to ground truth
+                        val_ground_truth.extend(list(labels.numpy()))
                        
                         # Move the input and output to the GPU
                         input_images = input_images.cuda(non_blocking=True)
@@ -209,16 +224,24 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                         # Get prediction and compute loss
                         predictions = model(input_images)
                         val_loss += loss_criterion(predictions, labels).item()
+            
+                        # Append predicted labels to preds
+                        pred_labels = model.predict_label(input_images)
+                        val_preds.extend(list(pred_labels.cpu().numpy()))
                 
                 val_loss /= len(val_loader.dataset)
                 train_loss = running_loss/running_count 
+                val_accu = accuracy_score(val_ground_truth, val_preds, normalize=True)
+                train_accu = accuracy_score(train_ground_truth, train_preds, normalize=True)
                 print(f"[epoch:{epoch_count+1}, iteration:{idx}] Average Training Loss: {train_loss}, Average Validation Loss: {val_loss}")
                 running_loss = 0.0
                 running_count = 0
+                train_ground_truth = []
+                train_preds = []
                 
-                wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
+                wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss, "training accuracy": train_accu, "validation accuracy": val_accu})
     
-        # If checkpointing is enabled, save current state
+        # If check-pointing is enabled, save current state
         if("save" in sys.argv):
             torch.save({
                 'model'     : model.state_dict(),
@@ -233,7 +256,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
         wandb.log_artifact(model_artifact)
 
 def test(model, test_loader):
-   
+
     # Load the saved model
     if("save" in sys.argv):
         if(isfile(checkpoint_path)):
@@ -300,7 +323,7 @@ def analyze_misclassifications(model, test_loader, inv_transform):
             # Get predicted label
             pred_labels = model.predict_label(input_images) 
             
-            # Check if a misprediction ouccurred and three images have not been saved yet
+            # Check if a miss-prediction occurred and three images have not been saved yet
             for input_image, pred_label, label in zip(input_images.cpu(), pred_labels.cpu(), labels.cpu()):
                 pred_label = pred_label.item()
                 label = label.item()
@@ -312,7 +335,7 @@ def analyze_misclassifications(model, test_loader, inv_transform):
                     # Apply the inverse of the transform
                     input_image = inv_transform(input_image)
 
-                    # Save the mispredicted image
+                    # Save the miss-predicted image
                     plt.figure()
                     plt.imshow(input_image)
                     img_name = 'true_' + str(label) + '_' + str(visualization_count[label]) + '_pred_' + str(pred_label)

@@ -30,7 +30,8 @@ class Net(nn.Module):
     def predict(self, x):
         x = self.forward(x)
         return self.softmax(x)
-
+    
+    # Predict the most probable label
     def predict_label(self, x):
         probs = self.predict(x)
         return torch.argmax(probs, dim=1)

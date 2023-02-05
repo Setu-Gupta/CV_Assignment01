@@ -65,3 +65,4 @@ References:
         * https://pytorch.org/vision/0.8/transforms.html
         * https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html
         * https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
+        * https://pytorch.org/vision/stable/feature_extraction.html
