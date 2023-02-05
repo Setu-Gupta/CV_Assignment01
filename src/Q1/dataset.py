@@ -21,8 +21,8 @@ class SvnhDataset(Dataset):
         # Apply transform
         image = self.transform(image)
         
-        label = self.Y[idx].item()  
         # Label 10 is for zero
+        label = self.Y[idx].item()  
         if(label == 10):
             label = 0
         

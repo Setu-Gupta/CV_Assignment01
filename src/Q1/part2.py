@@ -69,7 +69,7 @@ def make(config):
     std_dev = torch.sqrt(((channel_sum_squared/num_batches) - torch.square(mean)))
     mean = mean
     std_dev = std_dev
-
+ 
     # Create the transform to normalize the images
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -79,7 +79,8 @@ def make(config):
     # Create the transform to invese normalize the images
     inv_transform = transforms.Compose([
         transforms.Normalize(mean=[0., 0., 0.], std=1/std_dev),
-        transforms.Normalize(mean=-mean, std=[1., 1., 1.])
+        transforms.Normalize(mean=-mean, std=[1., 1., 1.]),
+        transforms.ToPILImage()
         ])
 
     # Load the data again but this time with transform. Split it into appropriate chunk size
@@ -144,7 +145,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
     start_epoch = 0
 
     # If a model is saved and checkpointing is enabled, load its state
-    if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+    if("save" in sys.argv):
         if(isfile(checkpoint_path)):
             checkpoint = torch.load(checkpoint_path)
             model.load_state_dict(checkpoint['model'])
@@ -215,7 +216,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 wandb.log({"epoch": epoch_count + 1, "train_loss": train_loss, "validation_loss": val_loss})
     
         # If checkpointing is enabled, save current state
-        if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+        if("save" in sys.argv):
             torch.save({
                 'model'     : model.state_dict(),
                 'optimizer' : optimizer.state_dict(),
@@ -223,7 +224,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                 }, checkpoint_path)
     
     # Save the model on wandb
-    if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+    if("save" in sys.argv):
         model_artifact = wandb.Artifact('model', type='model')
         model_artifact.add_file(checkpoint_path)
         wandb.log_artifact(model_artifact)
@@ -231,7 +232,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
 def test(model, test_loader):
    
     # Load the saved model
-    if(len(sys.argv) >= 2 and sys.argv[1] == "save"):
+    if("save" in sys.argv):
         if(isfile(checkpoint_path)):
             checkpoint = torch.load(checkpoint_path)
             model.load_state_dict(checkpoint['model'])
@@ -306,11 +307,9 @@ def analyze_misclassifications(model, test_loader, inv_transform):
                     visualization_count[label] += 1
 
                     # Apply the inverse of the transform
+                    print("Pre-transform: ", input_image)
                     input_image = inv_transform(input_image)
-
-                    # Convert the input image pixels to char type
-                    input_image = np.transpose(input_image, axes=[1, 2, 0])
-                    input_image = input_image.numpy().astype(np.uint8)
+                    print("Post-transform: ", input_image)
 
                     # Save the mispredicted image
                     plt.figure()
