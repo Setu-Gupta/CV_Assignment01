@@ -92,7 +92,7 @@ def make(config):
     std_dev = torch.Tensor([0.229, 0.224, 0.225])
     transform_affine = transforms.Compose([
         transforms.ToTensor(),
-        transforms.ColorJitter(degrees=45, translate=(0.1, 0.1), scale=(0.7, 1.3)),
+        transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.7, 1.3)),
         transforms.Resize(input_size),
         transforms.Normalize(mean=mean, std=std_dev)
     ])
@@ -111,7 +111,7 @@ def make(config):
     full_dataset = ConcatDataset([SvnhDataset(transform=transform_none), SvnhDataset(transform=transform_color), SvnhDataset(transform=transform_affine), SvnhDataset(transform=transform_blur)])
 
     # Load the data again but this time with transform. Split it into appropriate chunk size
-    training_data[0], validation_data[0], testing_data[0] = random_split(full_dataset, [config['train_ratio'], config['val_ratio'], config['test_ratio']])
+    training_data, validation_data, testing_data = random_split(full_dataset, [config['train_ratio'], config['val_ratio'], config['test_ratio']])
 
     # Create data loaders for training, validation and testing sets
     train_loader = DataLoader(training_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
