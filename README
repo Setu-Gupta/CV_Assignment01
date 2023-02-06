@@ -75,3 +75,4 @@ References:
         * https://matplotlib.org/stable/gallery/mplot3d/scatter3d.html
         * https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-matplotlib
         * https://www.intel.com/content/www/us/en/developer/articles/guide/intel-extension-for-scikit-learn-getting-started.html
+        * https://discuss.pytorch.org/t/how-to-apply-another-transform-to-an-existing-dataset/85416
