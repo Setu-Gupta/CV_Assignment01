@@ -25,7 +25,7 @@ torch.manual_seed(6225)
 np.random.seed(6225)
 
 # Set the checkpoint path
-checkpoint_path = "./saved_state/custom_CNN_Q1_4.pt"
+checkpoint_path = "./saved_state/Resnet_Q1_4.pt"
 
 # Use all cores
 torch.set_num_threads(multiprocessing.cpu_count())

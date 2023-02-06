@@ -26,7 +26,7 @@ torch.manual_seed(6225)
 np.random.seed(6225)
 
 # Set the checkpoint path
-checkpoint_path = "./saved_state/custom_CNN_Q1_3.pt"
+checkpoint_path = "./saved_state/Resnet_Q1_3.pt"
 
 # Set the pictures directory
 pictures_path = "./pictures_part3/"
