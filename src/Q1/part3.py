@@ -334,7 +334,7 @@ def plot_features_tsne(model, train_loader, val_loader):
     val_labels = np.array(val_labels)
 
     # Run 2D tSNE on the complete set of features
-    tsne = TSNE(n_components=2, learning_rate='auto', random_state=6225, n_jobs=-1)
+    tsne = TSNE(n_components=2, learning_rate='auto', random_state=6225, n_jobs=multiprocessing.cpu_count())
     all_features_2d = tsne.fit_transform(all_features)
 
     # Run 3D tSNE on validation features
