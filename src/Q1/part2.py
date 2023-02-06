@@ -353,7 +353,7 @@ def analyze_misclassifications(model, test_loader, inv_transform):
 def model_pipeline(hyperparameters):
 
     # Tell wandb to get started
-    with wandb.init(project="CV_Assignment01", config=hyperparameters):
+    with wandb.init(project="CV_Assignment01", config=hyperparameters, name="Custom CNN"):
         print("The model will be running on", device, "device")
 
         # Access all HPs through wandb.config, so logging matches execution!

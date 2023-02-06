@@ -371,7 +371,7 @@ def plot_features_tsne(model, train_loader, val_loader):
 def model_pipeline(hyperparameters):
 
     # Tell wandb to get started
-    with wandb.init(project="CV_Assignment01", config=hyperparameters):
+    with wandb.init(project="CV_Assignment01", config=hyperparameters, name="Finetuned Resnet"):
         print("The model will be running on", device, "device")
 
         # Access all HPs through wandb.config, so logging matches execution!
