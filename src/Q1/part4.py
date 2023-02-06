@@ -13,6 +13,7 @@ from torchvision import transforms
 import numpy as np
 import torch
 import multiprocessing
+from copy import deepcopy
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from sklearnex import patch_sklearn
 
@@ -110,15 +111,25 @@ def make(config):
         transforms.Resize(input_size),
         transforms.Normalize(mean=mean, std=std_dev)
     ])
-   
-    # Concatenate the dataset with all the four transforms
-    full_dataset = ConcatDataset([SvnhDataset(transform=transform_none), SvnhDataset(transform=transform_color), SvnhDataset(transform=transform_affine), SvnhDataset(transform=transform_blur)])
 
-    # Load the data again but this time with transform. Split it into appropriate chunk size
-    training_data, validation_data, testing_data = random_split(full_dataset, [config['train_ratio'], config['val_ratio'], config['test_ratio']])
+    # Split the dataset into appropriate chunk size
+    training_data, validation_data, testing_data = random_split(SvnhDataset(transform=transform_none), [config['train_ratio'], config['val_ratio'], config['test_ratio']])
+
+    # Make 3 copies of training data for augmentation
+    training_data_color = deepcopy(training_data)
+    training_data_affine = deepcopy(training_data)
+    training_data_blur = deepcopy(training_data)
+
+    # Set the transforms for the three copies
+    training_data_color.transform=transform_color
+    training_data_affine.transform=transform_affine
+    training_data_blur.transform=transform_blur
+
+    # Concatenate the training dataset with all the four transforms
+    training_data_full = ConcatDataset([training_data, training_data_color, training_data_affine, training_data_blur])
 
     # Create data loaders for training, validation and testing sets
-    train_loader = DataLoader(training_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
+    train_loader = DataLoader(training_data_full, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
     val_loader = DataLoader(validation_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
     test_loader = DataLoader(testing_data, shuffle=True, batch_size=config['batch_size'], pin_memory=True)
 

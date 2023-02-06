@@ -19,7 +19,8 @@ class SvnhDataset(Dataset):
         image = self.X[:,:,:,idx]
         
         # Apply transform
-        image = self.transform(image)
+        if self.transform:
+            image = self.transform(image)
         
         # Label 10 is for zero
         label = self.Y[idx].item()  
