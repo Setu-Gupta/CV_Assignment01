@@ -338,7 +338,7 @@ def plot_features_tsne(model, train_loader, val_loader):
     all_features_2d = tsne.fit_transform(all_features)
 
     # Run 3D tSNE on validation features
-    tsne = TSNE(n_components=3, learning_rate='auto', random_state=6225, n_jobs=-1)
+    tsne = TSNE(n_components=3, learning_rate='auto', random_state=6225, n_jobs=multiprocessing.cpu_count())
     val_features_3d = tsne.fit_transform(val_features)
     
     # Set the colors and target lists
@@ -351,13 +351,16 @@ def plot_features_tsne(model, train_loader, val_loader):
     for target, color, label in zip(targets, colors, target_names):
         plt.scatter(all_features_2d[all_labels == target, 0], all_features_2d[all_labels == target, 1], c=colors[target], label=target_names[target])
     plt.legend()
+    plt.set_title("Validation and Training set 2D tSNE plot")
     plt.savefig(pictures_path + 'train_val_tsne.png')
 
     # Plot 3D tSNE graph for the validation set
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
     for target, color, label in zip(targets, colors, target_names):
-        plt.scatter(val_features_3d[val_labels == target, 0], val_features_3d[val_labels == target, 1], val_features_3d[val_labels == target, 2], c=colors[target], label=target_names[target])
-    plt.legend()
+        ax.scatter(val_features_3d[val_labels == target, 0], val_features_3d[val_labels == target, 1], val_features_3d[val_labels == target, 2], c=colors[target], label=target_names[target])
+    ax.legend()
+    ax.set_title("Validation set 3D tSNE plot")
     plt.savefig(pictures_path + 'val_tsne.png')
 
 

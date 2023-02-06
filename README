@@ -71,3 +71,4 @@ References:
         * https://pytorch.org/vision/stable/transforms.html#transforms-on-pil-image-and-torch-tensor
         * https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_tsne.html
         * https://matplotlib.org/stable/gallery/mplot3d/scatter3d.html
+        * https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-matplotlib
