@@ -16,6 +16,10 @@ import multiprocessing
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from torchvision.models.feature_extraction import create_feature_extractor
 from sklearn.manifold import TSNE
+from sklearnex import patch_sklearn
+
+# Use intel MKL for sklearn
+patch_sklearn()
 
 # Set a manual seed for reproducibility
 torch.manual_seed(6225)
@@ -347,15 +351,15 @@ def plot_features_tsne(model, train_loader, val_loader):
     target_names = [str(x) for x in range(10)]
     
     # Plot 2D tSNE graph for the whole set
-    plt.figure()
+    plt.figure(figsize=(10,10))
     for target, color, label in zip(targets, colors, target_names):
         plt.scatter(all_features_2d[all_labels == target, 0], all_features_2d[all_labels == target, 1], c=colors[target], label=target_names[target])
     plt.legend()
-    plt.set_title("Validation and Training set 2D tSNE plot")
+    plt.title("Validation and Training set 2D tSNE plot")
     plt.savefig(pictures_path + 'train_val_tsne.png')
 
     # Plot 3D tSNE graph for the validation set
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(projection='3d')
     for target, color, label in zip(targets, colors, target_names):
         ax.scatter(val_features_3d[val_labels == target, 0], val_features_3d[val_labels == target, 1], val_features_3d[val_labels == target, 2], c=colors[target], label=target_names[target])

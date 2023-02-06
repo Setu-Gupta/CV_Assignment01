@@ -19,6 +19,7 @@ Dependencies:
                 * multiprocessing
                 * sys
                 * os
+                * scikit-learn-intelex
         2. Others:
                 * git-lfs
 
@@ -72,3 +73,4 @@ References:
         * https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_tsne.html
         * https://matplotlib.org/stable/gallery/mplot3d/scatter3d.html
         * https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-matplotlib
+        * https://www.intel.com/content/www/us/en/developer/articles/guide/intel-extension-for-scikit-learn-getting-started.html
