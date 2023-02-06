@@ -14,6 +14,10 @@ import numpy as np
 import torch
 import multiprocessing
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+from sklearnex import patch_sklearn
+
+# Use intel MKL for sklearn
+patch_sklearn()
 
 # Set a manual seed for reproducibility
 torch.manual_seed(6225)
