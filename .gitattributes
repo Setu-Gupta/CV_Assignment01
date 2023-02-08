@@ -1,2 +1,3 @@
 src/Q1/data/*.mat filter=lfs diff=lfs merge=lfs -text
 src/Q1/saved_state/Resnet_Q1_3.pt filter=lfs diff=lfs merge=lfs -text
+src/Q1/saved_state/Resnet_Q1_4.pt filter=lfs diff=lfs merge=lfs -text
