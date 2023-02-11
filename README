@@ -6,8 +6,10 @@ How to run:
                 $ cd src
         * Go to the directory of the question that you want to evaluate
                 $ cd Q<1,2,3>
-        * Run main.py with python3. Optionally specify "save" as the argument to enable checkpointing. Optionally specify test to only evaluate the model.
-                $ python3 main.py [save] [test]
+        * Run appropriate file with python3
+                $ python3 <file name> [save] [test]
+        Note: Optionally specify "save" to enable checkpointing, if the file supports this
+        Note: Optionally specify "test" to only evaluate the model, if the file supports this
 
 Dependencies:
         1. Python:
@@ -76,3 +78,5 @@ References:
         * https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-matplotlib
         * https://www.intel.com/content/www/us/en/developer/articles/guide/intel-extension-for-scikit-learn-getting-started.html
         * https://discuss.pytorch.org/t/how-to-apply-another-transform-to-an-existing-dataset/85416
+        * https://stackoverflow.com/questions/55322434/how-to-clear-cuda-memory-in-pytorch
+        * https://stackoverflow.com/questions/68220457/to-calculate-euclidean-distance-between-vectors-in-a-torch-tensor-with-multiple
