@@ -26,6 +26,16 @@ class Net(nn.Module):
 
         return x
 
+    # WARNING: This functions works on single images, not batch of images
+    def get_features(self, x):
+        x = self.conv1(x)                   # Apply the first layer
+        x = F.relu(x)                       # Apply the activation function
+        x = self.conv2(x)                   # Apply the second layer
+        x = F.relu(x)                       # Apply the activation function
+        x = torch.flatten(x)                # Flatten the values
+
+        return x
+
     # Predicts probabilities of various classes
     def predict(self, x):
         x = self.forward(x)

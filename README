@@ -80,3 +80,6 @@ References:
         * https://discuss.pytorch.org/t/how-to-apply-another-transform-to-an-existing-dataset/85416
         * https://stackoverflow.com/questions/55322434/how-to-clear-cuda-memory-in-pytorch
         * https://stackoverflow.com/questions/68220457/to-calculate-euclidean-distance-between-vectors-in-a-torch-tensor-with-multiple
+        * https://pytorch.org/vision/stable/feature_extraction.html
+        * https://sparrow.dev/adding-a-dimension-to-a-tensor-in-pytorch/
+        * https://debuggercafe.com/semantic-segmentation-using-pytorch-fcn-resnet/
