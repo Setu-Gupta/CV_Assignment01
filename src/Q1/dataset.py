@@ -1,6 +1,5 @@
 from torch.utils.data import Dataset
 import scipy.io
-import numpy as np
 
 class SvnhDataset(Dataset):
     # Loads the data and populates the X and Y variables
