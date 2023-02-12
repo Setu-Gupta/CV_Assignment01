@@ -23,6 +23,7 @@ Dependencies:
                 * os
                 * scikit-learn-intelex
                 * copy
+                * pandas
         2. Others:
                 * git-lfs
 
@@ -83,3 +84,5 @@ References:
         * https://pytorch.org/vision/stable/feature_extraction.html
         * https://sparrow.dev/adding-a-dimension-to-a-tensor-in-pytorch/
         * https://debuggercafe.com/semantic-segmentation-using-pytorch-fcn-resnet/
+        * https://www.geeksforgeeks.org/different-ways-to-create-pandas-dataframe/
+        * https://stackoverflow.com/questions/15943769/how-do-i-get-the-row-count-of-a-pandas-dataframe
