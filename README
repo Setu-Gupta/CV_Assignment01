@@ -24,6 +24,7 @@ Dependencies:
                 * scikit-learn-intelex
                 * copy
                 * pandas
+                * pillow
         2. Others:
                 * git-lfs
 
@@ -86,3 +87,17 @@ References:
         * https://debuggercafe.com/semantic-segmentation-using-pytorch-fcn-resnet/
         * https://www.geeksforgeeks.org/different-ways-to-create-pandas-dataframe/
         * https://stackoverflow.com/questions/15943769/how-do-i-get-the-row-count-of-a-pandas-dataframe
+        * https://www.youtube.com/watch?v=IHq1t7NxS8k
+        * https://www.kaggle.com/code/dasmehdixtr/load-finetune-pretrained-model-in-pytorch
+        * https://support.esri.com/en/technical-article/000005606
+        * https://www.kaggle.com/code/finlay/pytorch-fcn-resnet50-in-20-minute
+        * https://www.tutorialspoint.com/matplotlib/matplotlib_setting_ticks_and_tick_labels.htm
+        * https://www.discoverbits.in/2765/python-count-number-elements-tensor-which-greater-given-value
+        * https://debuggercafe.com/semantic-segmentation-using-pytorch-fcn-resnet/
+        * https://pytorch.org/docs/stable/generated/torch.from_numpy.html
+        * https://stackoverflow.com/questions/384759/how-do-i-convert-a-pil-image-into-a-numpy-array
+        * https://www.geeksforgeeks.org/python-pil-image-open-method/
+        * https://www.geeksforgeeks.org/change-data-type-of-given-numpy-array/
+        * https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html
+        * https://www.statology.org/numpy-replace/
+        * https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
