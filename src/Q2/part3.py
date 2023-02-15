@@ -364,7 +364,7 @@ def test(model, test_loader):
 def model_pipeline(hyperparameters):
 
     # Tell wandb to get started
-    with wandb.init(project="CV_Assignment01", config=hyperparameters, name="FCN Resnet50"):
+    with wandb.init(project="CV_Assignment01", config=hyperparameters, name="FCN Resnet50 Augmented"):
         print("The model will be running on", device, "device")
 
         # Access all HPs through wandb.config, so logging matches execution!
