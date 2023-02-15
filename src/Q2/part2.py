@@ -13,6 +13,7 @@ import torch
 import multiprocessing
 import numpy as np
 from sklearn.metrics import average_precision_score, precision_score, recall_score, f1_score, accuracy_score
+from sklearnex import patch_sklearn
 
 # Use intel MKL for sklearn
 patch_sklearn()
@@ -45,7 +46,7 @@ config = dict(
         learning_rate = 0.01,
         weight_decay = 0.005,
         batch_size = 15,
-        epochs = 1000,
+        epochs = 500,
         log_interval = 1,
     )
 
