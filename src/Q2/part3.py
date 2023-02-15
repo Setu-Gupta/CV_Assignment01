@@ -4,13 +4,14 @@ wandb.login()
 import sys
 from os.path import isfile
 from dataset import VocDataset
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, ConcatDataset
 import torchvision.transforms.functional as TF
 from torchvision import transforms
 from torchvision.models.segmentation import fcn_resnet50, FCN_ResNet50_Weights
 from torch.optim import Adam
 import torch
 import multiprocessing
+from copy import deepcopy
 import numpy as np
 from sklearn.metrics import average_precision_score, precision_score, recall_score, f1_score, accuracy_score
 from sklearnex import patch_sklearn
