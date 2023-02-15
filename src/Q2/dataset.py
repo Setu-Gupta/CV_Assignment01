@@ -4,6 +4,7 @@ from os import listdir
 from torchvision.io import read_image
 from PIL import Image
 import numpy as np
+from matplotlib import pyplot as plt
 
 images_path = './VOC_Dataset/images/'
 masks_path = './VOC_Dataset/masks/'
@@ -38,7 +39,8 @@ class VocDataset(Dataset):
         # Read mask and image
         image = Image.open(image_full_path)
         mask = Image.open(mask_full_path)
-        mask = np.array(mask.getdata()).reshape(1, mask.size[0], mask.size[1])
+        
+        mask = np.array(mask.getdata()).reshape(1, mask.size[1], mask.size[0])
         mask[mask == 255] = 0
         
         # Apply transform
@@ -47,5 +49,5 @@ class VocDataset(Dataset):
         if self.transform_mask:
             mask = self.transform_mask(mask)
         mask = mask[0]  # Remove the dummy dimension
-        
+
         return image, mask

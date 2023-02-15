@@ -14,6 +14,9 @@ import multiprocessing
 import numpy as np
 from sklearn.metrics import average_precision_score, precision_score, recall_score, f1_score, accuracy_score
 
+# Use intel MKL for sklearn
+patch_sklearn()
+
 # Set a manual seed for reproducibility
 torch.manual_seed(6225)
 np.random.seed(6225)
@@ -93,7 +96,7 @@ def make(config):
     train_loader = DataLoader(training_data, shuffle=True, pin_memory=True, batch_size=config['batch_size'], num_workers=multiprocessing.cpu_count())
     val_loader = DataLoader(validation_data, shuffle=True, pin_memory=True, batch_size=config['batch_size'], num_workers=multiprocessing.cpu_count())
     test_loader = DataLoader(testing_data, shuffle=True, pin_memory=True, batch_size=config['batch_size'], num_workers=multiprocessing.cpu_count())
-
+    
     # Visualize the data distribution
     # Get the target labels
     with torch.no_grad():   # Ensure that no intermidiate results are stored on the GPU
@@ -209,7 +212,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
            
             # Update accuarcy and IoU metrics
             total_pixels += images.numel()
-            total_matches = (preds == masks).sum()
+            total_matches += (preds == masks).sum().item()
             for c in range(21):
                 intersections[c] += (preds[preds == masks] == c).sum()
                 unions[c] += (preds == c).sum() + (masks == c).sum() - (preds[preds == masks] == c).sum()
@@ -240,7 +243,7 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
                     
                     # Update accuarcy and IoU metrics
                     val_total_pixels += images.numel()
-                    val_total_matches = (preds == masks).sum()
+                    val_total_matches += (preds == masks).sum().item()
                     for c in range(21):
                         val_intersections[c] += (preds[preds == masks] == c).sum()
                         val_unions[c] += (preds == c).sum() + (masks == c).sum() - (preds[preds == masks] == c).sum()
@@ -250,8 +253,8 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             train_loss = running_loss/running_count 
             val_accu = val_total_matches/val_total_pixels
             train_accu = total_matches/total_pixels
-            val_iou = (val_intersections / val_unions).sum().item()
-            train_iou = (intersections / unions).sum().item() 
+            val_iou = (val_intersections / val_unions).sum().item() / 21
+            train_iou = (intersections / unions).sum().item() / 21
             
             # Reset counters
             total_matches = 0
@@ -333,7 +336,7 @@ def test(model, test_loader):
             for c in range(21):
                 intersections[c] += (pred_labels[pred_labels == masks] == c).sum()
                 unions[c] += (pred_labels == c).sum() + (masks == c).sum() - (pred_labels[pred_labels == masks] == c).sum()
-            iou = intersections.sum()/unions.sum()
+            iou = (intersections / unions).sum() / 21
             for x in range(10):
                 iou_range = (x+1)*0.1
                 if(iou <= iou_range):
