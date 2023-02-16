@@ -47,7 +47,7 @@ config = dict(
         learning_rate = 0.01,
         weight_decay = 0.005,
         batch_size = 15,
-        epochs = 500,
+        epochs = 300,
         log_interval = 1,
     )
 
