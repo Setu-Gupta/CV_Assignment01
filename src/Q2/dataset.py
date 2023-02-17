@@ -1,7 +1,6 @@
 from torch.utils.data import Dataset
 import pandas as pd
 from os import listdir
-from torchvision.io import read_image
 from PIL import Image
 import numpy as np
 from matplotlib import pyplot as plt
@@ -10,7 +9,6 @@ images_path = './VOC_Dataset/images/'
 masks_path = './VOC_Dataset/masks/'
 
 class VocDataset(Dataset):
-    # Loads the data and populates the X and Y variables
     def __init__(self, transform_image=None, transform_mask=None):
         self.transform_image = transform_image
         self.transform_mask = transform_mask
