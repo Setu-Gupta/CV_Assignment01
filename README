@@ -102,3 +102,7 @@ References:
         * https://www.statology.org/numpy-replace/
         * https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
         * https://www.edge-ai-vision.com/2022/04/exploring-data-labeling-and-the-6-different-types-of-image-annotation/
+        * https://www.v7labs.com/blog/yolo-object-detection
+        * https://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
+        * https://curiousily.com/posts/object-detection-on-custom-dataset-with-yolo-v5-using-pytorch-and-python/
+        * https://pytorch.org/hub/ultralytics_yolov5/#load-from-pytorch-hub
