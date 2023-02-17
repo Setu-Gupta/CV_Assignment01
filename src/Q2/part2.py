@@ -327,7 +327,7 @@ def test(model, test_loader):
             ground_truth.extend(list(masks.numpy().flatten()))
 
             # Get predicted label
-            predictions = model(images)
+            predictions = model(images)['out']
             pred_labels = torch.argmax(predictions, dim=1)
             preds.extend(list(pred_labels.cpu().numpy().flatten()))
             
@@ -385,7 +385,7 @@ def analyze_misclassifications(model, test_loader, inv_transform):
             images = images.cuda(non_blocking=True)
 
             # Get predicted label
-            predictions = model(images) 
+            predictions = model(images)['out'] 
             pred_labels = torch.argmax(predictions, dim=1)
 
             for idx in range(images.shape[0]):
