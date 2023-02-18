@@ -4,6 +4,7 @@ from os import listdir
 from PIL import Image
 import numpy as np
 from matplotlib import pyplot as plt
+import torch
 
 images_path = './svhn/images/all/'
 labels_path = './svhn/labels/all/'
@@ -35,9 +36,11 @@ class SvnhDataset(Dataset):
         
         # Read the image
         image = Image.open(image_full_path)
-        label = []
+        
+        # Read the label
+        label = torch.zeros((10, 4))
         with open(label_full_path) as label_file:
-            for box in label_file:
+            for box in label_file.readlines():
                 box_label = []
                 class_idx, x_center, y_center, width, height = box.split()
                 class_idx = int(class_idx)
@@ -45,11 +48,13 @@ class SvnhDataset(Dataset):
                 y_center = float(y_center)
                 width = float(width)
                 height = float(height)
-                box_label = [class_idx, x_center, y_center, width, height]
-                label.append(box_label)
+                label[class_idx] = x_center
+                label[class_idx] = y_center
+                label[class_idx] = width
+                label[class_idx] = height
 
         # Apply transform
         if self.transform:
             image = self.transform(image)
-
+        
         return image, label
