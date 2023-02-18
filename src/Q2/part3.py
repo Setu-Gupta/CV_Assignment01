@@ -47,7 +47,7 @@ config = dict(
         learning_rate = 0.01,
         weight_decay = 0.005,
         batch_size = 15,
-        epochs = 100,
+        epochs = 250,
         log_interval = 1,
         background_weight = 0.025,   # Give less weight to background as othewise the model learns to always predict background
     )
