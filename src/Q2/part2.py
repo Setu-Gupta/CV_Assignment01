@@ -48,6 +48,7 @@ config = dict(
         batch_size = 15,
         epochs = 100,
         log_interval = 1,
+        background_weight = 0.01,   # Give 100x less weight to background as othewise the model learns to always predict background
     )
 
 # Custom transform for masks
@@ -64,7 +65,7 @@ def make(config):
 
     # Create the loss criterion
     weight = torch.ones(21)
-    weight[0] = 0.01    # Give 100x less weight to background as othewise the model learns to always predict background
+    weight[0] = config['background_weight']
     loss_criterion = torch.nn.CrossEntropyLoss(weight=weight, reduction='mean')
     
     # Create the optimizer
