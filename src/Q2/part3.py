@@ -346,6 +346,7 @@ def test(model, test_loader):
                     rec = recall_score(masks.numpy().flatten(), pred_labels.cpu().numpy().flatten(), average='weighted', zero_division=1)
                     pn[x] = (running_count[x] * pn[x] + pre) / (running_count[x] + 1)
                     rn[x] = (running_count[x] * rn[x] + rec) / (running_count[x] + 1)
+                    break
 
     # Compute accuracy, precision, recall and f1_score
     average_precision = sum([(rn[i] - rn[i-1])*pn[i] for i in range(1, 10)])
