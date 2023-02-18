@@ -25,6 +25,9 @@ Dependencies:
                 * copy
                 * pandas
                 * pillow
+                * ipython
+                * opencv-python
+                * tqdm
         2. Others:
                 * git-lfs
 
@@ -111,3 +114,7 @@ References:
         * https://pytorch.org/docs/stable/generated/torch.any.html
         * https://stackoverflow.com/questions/64594493/filter-out-nan-values-from-a-pytorch-n-dimensional-tensor
         * https://stackoverflow.com/questions/62372762/delete-an-element-from-torch-tensor
+        * https://github.com/ultralytics/yolov5/issues/36
+        * https://stackoverflow.com/questions/67244258/how-to-get-class-and-bounding-box-coordinates-from-yolov5-predictions
+        * https://github.com/ultralytics/yolov5/blob/master/train.py
+        * https://pytorch.org/hub/ultralytics_yolov5/#load-from-pytorch-hub
