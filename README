@@ -106,3 +106,4 @@ References:
         * https://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
         * https://curiousily.com/posts/object-detection-on-custom-dataset-with-yolo-v5-using-pytorch-and-python/
         * https://pytorch.org/hub/ultralytics_yolov5/#load-from-pytorch-hub
+        * https://blog.paperspace.com/train-yolov5-custom-data/

@@ -325,8 +325,8 @@ def test(model, test_loader):
             preds.extend(list(pred_labels.cpu().numpy().flatten()))
             
             # Compute the IoU
-            intersections = torch.zeros(21, dtype=int).to(device)
-            unions = torch.zeros(21, dtype=int).to(device)
+            intersections = torch.zeros(21, dtype=int)
+            unions = torch.zeros(21, dtype=int)
             for c in range(21):
                 intersections[c] += (pred_labels[pred_labels == masks] == c).sum()
                 unions[c] += (pred_labels == c).sum() + (masks == c).sum() - (pred_labels[pred_labels == masks] == c).sum()
