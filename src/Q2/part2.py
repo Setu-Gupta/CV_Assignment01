@@ -254,8 +254,12 @@ def train(model, loss_criterion, optimizer, train_loader, val_loader, config):
             train_loss = running_loss/running_count 
             val_accu = val_total_matches/val_total_pixels
             train_accu = total_matches/total_pixels
-            val_iou = (val_intersections / val_unions).sum().item() / 21
-            train_iou = (intersections / unions).sum().item() / 21
+            val_iou = (val_intersections / val_unions)
+            val_iou = val_iou[~val_iou.isnan()] 
+            val_iou = val_iou.sum().item() / 21
+            train_iou = (intersections / unions)
+            train_iou = train_iou[~train_iou.isnan()]
+            train_iou = train_iou.sum().item() / 21
             
             # Reset counters
             total_matches = 0
@@ -322,14 +326,14 @@ def test(model, test_loader):
             
             # Move the input to the GPU
             images = images.cuda(non_blocking=True)
-            
+
             # Store the ground truth
             ground_truth.extend(list(masks.numpy().flatten()))
 
             # Get predicted label
             predictions = model(images)['out']
-            pred_labels = torch.argmax(predictions, dim=1)
-            preds.extend(list(pred_labels.cpu().numpy().flatten()))
+            pred_labels = torch.argmax(predictions, dim=1).cpu()
+            preds.extend(list(pred_labels.numpy().flatten()))
             
             # Compute the IoU
             intersections = torch.zeros(21, dtype=int)
@@ -337,6 +341,8 @@ def test(model, test_loader):
             for c in range(21):
                 intersections[c] += (pred_labels[pred_labels == masks] == c).sum()
                 unions[c] += (pred_labels == c).sum() + (masks == c).sum() - (pred_labels[pred_labels == masks] == c).sum()
+            iou = (intersections / unions)
+            iou = iou[~iou.isnan()]
             iou = (intersections / unions).sum() / 21
             for x in range(10):
                 iou_range = (x+1)*0.1
@@ -348,7 +354,10 @@ def test(model, test_loader):
     # Compute accuracy, precision, recall and f1_score
     average_precisions = []
     for x in range(10):
-        average_precisions.append(average_precision_score(ground_truth_IoU[x], preds_IoU[x], average='weighted'))
+        if len(ground_truth_IoU[x]) == 0:   # Check if the class was found or not
+            average_precisions.append(-1)
+        else:
+            average_precisions.append(average_precision_score(ground_truth_IoU[x], preds_IoU[x], average='weighted'))
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
     precision = precision_score(ground_truth, preds, average='weighted', zero_division=1)
     recall = recall_score(ground_truth, preds, average='weighted', zero_division=1)
@@ -361,14 +370,14 @@ def test(model, test_loader):
             "Recall": recall
         }
     for x in range(10):
-        key = "Average precision for " + str(x*0.1) + " < IoU <= " + str((x+1)*0.1)
+        key = "Average precision for " + str(x*0.1)[:3]+ " < IoU <= " + str((x+1)*0.1)[:3]
         value = average_precisions[x]
         logs[key] = value
     wandb.log(logs)
 
     # Save the model
-    torch.onnx.export(model, input_images, "model_Q1_2.onnx")
-    wandb.save("model_Q1_2.onnx")
+    torch.onnx.export(model, images, "model_Q2_2.onnx")
+    wandb.save("model_Q2_2.onnx")
 
 def analyze_misclassifications(model, test_loader, inv_transform):
     # Move the model to the GPU

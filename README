@@ -107,3 +107,7 @@ References:
         * https://curiousily.com/posts/object-detection-on-custom-dataset-with-yolo-v5-using-pytorch-and-python/
         * https://pytorch.org/hub/ultralytics_yolov5/#load-from-pytorch-hub
         * https://blog.paperspace.com/train-yolov5-custom-data/
+        * https://pytorch.org/docs/stable/generated/torch.isnan.html
+        * https://pytorch.org/docs/stable/generated/torch.any.html
+        * https://stackoverflow.com/questions/64594493/filter-out-nan-values-from-a-pytorch-n-dimensional-tensor
+        * https://stackoverflow.com/questions/62372762/delete-an-element-from-torch-tensor
