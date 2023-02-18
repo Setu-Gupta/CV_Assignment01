@@ -48,7 +48,7 @@ config = dict(
         batch_size = 15,
         epochs = 100,
         log_interval = 1,
-        background_weight = 0.01,   # Give 100x less weight to background as othewise the model learns to always predict background
+        background_weight = 0.025,   # Give less weight to background as othewise the model learns to always predict background
     )
 
 # Custom transform for masks
