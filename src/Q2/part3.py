@@ -307,10 +307,6 @@ def test(model, test_loader):
     
     # Create an array of predicted labels
     preds = []
-    
-    # IoU and preds ground truths
-    ground_truth_IoU = [[] for x in range(10)]
-    preds_IoU = [[] for x in range(10)]
 
     # Create an array of class names
     class_names = [str(x) for x in range(22)]

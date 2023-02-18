@@ -417,6 +417,10 @@ def analyze_misclassifications(model, test_loader, inv_transform):
                     plt.imshow(mask)
                     mask_name = 'mask_' + str(visualization_count)
                     plt.savefig(pictures_path + mask_name)
+                    plt.figure()
+                    plt.imshow(pred_label)
+                    pred_name = 'predicted_mask_' + str(visualization_count)
+                    plt.savefig(pictures_path + pred_name)
 
                 if visualization_count >= 3:
                     return
