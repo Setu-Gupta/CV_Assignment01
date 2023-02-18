@@ -63,7 +63,9 @@ def make(config):
     model = fcn_resnet50(weights=FCN_ResNet50_Weights.DEFAULT)
 
     # Create the loss criterion
-    loss_criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+    weight = torch.ones(21)
+    weight[0] = 0.01    # Give 100x less weight to background as othewise the model learns to always predict background
+    loss_criterion = torch.nn.CrossEntropyLoss(weight=weight, reduction='mean')
     
     # Create the optimizer
     optimizer = Adam(model.parameters(), lr=config['learning_rate'], betas=(config['adam_beta1'], config['adam_beta2']), weight_decay=config['weight_decay'])
