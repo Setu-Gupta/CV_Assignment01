@@ -13,7 +13,7 @@ import torch
 import multiprocessing
 from copy import deepcopy
 import numpy as np
-from sklearn.metrics import average_precision_score, precision_score, recall_score, f1_score, accuracy_score
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from sklearnex import patch_sklearn
 
 # Use intel MKL for sklearn
@@ -315,6 +315,9 @@ def test(model, test_loader):
     # Create an array of class names
     class_names = [str(x) for x in range(22)]
 
+    running_count = [0 for _ in range(10)]
+    pn = [0 for _ in range(10)]
+    rn = [0 for _ in range(10)]
     with torch.no_grad():
         for idx, data in enumerate(test_loader):
             # Get the input and the label
@@ -339,21 +342,17 @@ def test(model, test_loader):
                 unions[c] += (pred_labels == c).sum() + (masks == c).sum() - (pred_labels[pred_labels == masks] == c).sum()
             iou = (intersections / unions)
             iou = iou[~iou.isnan()]
-            iou = (intersections / unions).sum() / 21
+            iou = iou.sum().item() / 21
             for x in range(10):
                 iou_range = (x+1)*0.1
                 if(iou <= iou_range):
-                    ground_truth_IoU[x].extend(list(masks.numpy().flatten()))
-                    preds_IoU[x].extend(list(pred_labels.cpu().numpy().flatten()))
-                    break
+                    pre = precision_score(masks.numpy().flatten(), pred_labels.cpu().numpy().flatten(), average='weighted', zero_division=1)
+                    rec = recall_score(masks.numpy().flatten(), pred_labels.cpu().numpy().flatten(), average='weighted', zero_division=1)
+                    pn[x] = (running_count[x] * pn[x] + pre) / (running_count[x] + 1)
+                    rn[x] = (running_count[x] * rn[x] + rec) / (running_count[x] + 1)
 
     # Compute accuracy, precision, recall and f1_score
-    average_precisions = []
-    for x in range(10):
-        if len(ground_truth_IoU[x]) == 0:   # Check if the class was found or not
-            average_precisions.append(-1)
-        else:
-            average_precisions.append(average_precision_score(ground_truth_IoU[x], preds_IoU[x], average='weighted'))
+    average_precision = sum([(rn[i] - rn[i-1])*pn[i] for i in range(1, 10)])
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
     precision = precision_score(ground_truth, preds, average='weighted', zero_division=1)
     recall = recall_score(ground_truth, preds, average='weighted', zero_division=1)
@@ -363,12 +362,9 @@ def test(model, test_loader):
     logs = {"F1_score": f_score,
             "Accuracy": accuracy,
             "Precision": precision,
-            "Recall": recall
+            "Recall": recall,
+            "Average Precision": average_precision,
         }
-    for x in range(10):
-        key = "Average precision for " + str(x*0.1)[:3]+ " < IoU <= " + str((x+1)*0.1)[:3]
-        value = average_precisions[x]
-        logs[key] = value
     wandb.log(logs)
 
     # Save the model
