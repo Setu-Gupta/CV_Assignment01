@@ -308,8 +308,9 @@ def test(model, test_loader):
     # Create an array of predicted labels
     preds = []
 
-    # Create an array of class names
-    class_names = [str(x) for x in range(22)]
+    # Create tensors to track the overall IoU
+    total_intersections = torch.zeros(21, dtype=int).to(device)
+    total_unions = torch.zeros(21, dtype=int).to(device)
 
     running_count = [0 for _ in range(10)]
     pn = [0 for _ in range(10)]
@@ -336,6 +337,8 @@ def test(model, test_loader):
             for c in range(21):
                 intersections[c] += (pred_labels[pred_labels == masks] == c).sum()
                 unions[c] += (pred_labels == c).sum() + (masks == c).sum() - (pred_labels[pred_labels == masks] == c).sum()
+                total_intersections[c] += (pred_labels[pred_labels == masks] == c).sum()
+                total_unions += (pred_labels == c).sum() + (masks == c).sum() - (pred_labels[pred_labels == masks] == c).sum()
             iou = (intersections / unions)
             iou = iou[~iou.isnan()]
             iou = iou.sum().item() / 21
@@ -349,6 +352,9 @@ def test(model, test_loader):
                     break
 
     # Compute accuracy, precision, recall and f1_score
+    iou = (total_intersections / total_unions)
+    iou = iou[~iou.isnan()]
+    iou = iou.sum().item() / 21
     average_precision = sum([(rn[i] - rn[i-1])*pn[i] for i in range(1, 10)])
     accuracy = accuracy_score(ground_truth, preds, normalize=True)
     precision = precision_score(ground_truth, preds, average='weighted', zero_division=1)
@@ -361,11 +367,12 @@ def test(model, test_loader):
             "Precision": precision,
             "Recall": recall,
             "Average Precision": average_precision,
+            "IoU": iou,
         }
     wandb.log(logs)
 
     # Save the model
-    torch.onnx.export(model, input_images, "model_Q2_3.onnx")
+    torch.onnx.export(model, images, "model_Q2_3.onnx")
     wandb.save("model_Q2_3.onnx")
 
 def model_pipeline(hyperparameters):
